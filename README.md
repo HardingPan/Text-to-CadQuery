@@ -6,6 +6,7 @@ This repository supports our NeurIPS submission on generating **CadQuery-based 3
 
 - `data_annotation/`  
   Scripts for annotating CAD sequences using Gemini 2.0 Flash on top of the Text2CAD dataset.
+  The full annotated dataset is available here: [CadQuery.zip](https://huggingface.co/ricemonster/NeurIPS11092/blob/main/CadQuery.zip)
 
 - `train/`  
   Training scripts for six open-source models (CodeGPT, Gemma, GPT-2, Mistral, Qwen).  
