@@ -8,6 +8,9 @@ from datetime import datetime
 import time
 import signal
 
+# 设置 Hugging Face 镜像，避免下载超时
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+
 client = genai.Client(api_key="")
 
 def get_input(json_path, file_index, save_path):
