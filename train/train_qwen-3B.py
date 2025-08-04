@@ -2,6 +2,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from datasets import load_dataset
 import torch
 
+# export HF_ENDPOINT=https://hf-mirror.com
+
 model_path = "Qwen/Qwen2.5-3B-Instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(
