@@ -1,8 +1,12 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer, DataCollatorForLanguageModeling
 from datasets import load_dataset
 import torch
+import os
 
 # export HF_ENDPOINT=https://hf-mirror.com
+
+# 设置 Hugging Face 镜像，避免下载超时
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
 model_path = "Qwen/Qwen2.5-3B-Instruct"
 
@@ -19,8 +23,8 @@ tokenizer.pad_token = tokenizer.eos_token # End of Sequence Token（序列结束
 tokenizer.padding_side = "left" # 左侧填充（对生成任务更友好）
 
 # 加载 JSONL 格式的训练和验证数据
-train_raw = load_dataset("json", data_files="data_train_save_file.jsonl", split="train")
-val_raw = load_dataset("json", data_files="data_val_save_file.jsonl", split="train")
+train_raw = load_dataset("json", data_files="JSON/data_train.jsonl", split="train")
+val_raw = load_dataset("json", data_files="JSON/data_val.jsonl", split="train")
 
 print(f"Train raw count: {len(train_raw)}")
 print(f"Val raw count:   {len(val_raw)}")
@@ -28,8 +32,8 @@ print(f"Val raw count:   {len(val_raw)}")
 def count_length(example):
     # 数据格式化: 使用指令-响应格式，类似 ChatML 风格
     prompt = f"### Instruction:\n{example['input']}\n\n### Response:\n{example['output']}{tokenizer.eos_token}"
-    tokens = tokenizer(prompt, truncation=False) # 计算长度时 - 不截断，获取真实长度
-    # 训练时 - 截断到固定长度
+    # 重要：在计算长度时也要设置 max_length，确保与后续处理一致
+    tokens = tokenizer(prompt, truncation=True, max_length=1024, padding=False)
     example["length"] = len(tokens["input_ids"])
     return example
 
@@ -37,7 +41,7 @@ def count_length(example):
 train_with_length = train_raw.map(count_length)
 val_with_length = val_raw.map(count_length)
 
-# 筛选操作，只保留满足条件的数据
+# 筛选操作，只保留满足条件的数据 (现在这一步实际上保留所有数据，因为已经在 count_length 中截断)
 train_filtered = train_with_length.filter(lambda x: x["length"] <= 1024)
 val_filtered = val_with_length.filter(lambda x: x["length"] <= 1024)
 print(f"Train filtered count: {len(train_filtered)}")
@@ -60,8 +64,8 @@ model = AutoModelForCausalLM.from_pretrained(
 
 training_args = TrainingArguments(
     output_dir="./checkpoints_qwen3b",
-    per_device_train_batch_size=6,
-    per_device_eval_batch_size=6,
+    per_device_train_batch_size=3,
+    per_device_eval_batch_size=3,
     gradient_accumulation_steps=2, # 有效批次大小: 6 × 2 = 12 （考虑梯度累积）
     num_train_epochs=3,
     learning_rate=5e-5,
