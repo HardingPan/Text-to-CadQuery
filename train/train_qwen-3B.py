@@ -3,10 +3,11 @@ from datasets import load_dataset
 import torch
 import os
 
-# export HF_ENDPOINT=https://hf-mirror.com
+# export HF_ENDPOINT=https://hf-mirror.com && export HF_HUB_DISABLE_TELEMETRY=1 && sudo /home/panding/miniconda3/envs/torch/bin/python train/train_qwen-3B.py
 
-# 设置 Hugging Face 镜像，避免下载超时
+# 必须在导入其他库之前设置环境变量
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
 
 model_path = "Qwen/Qwen2.5-3B-Instruct"
 
@@ -63,9 +64,9 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 training_args = TrainingArguments(
-    output_dir="./checkpoints_qwen3b",
-    per_device_train_batch_size=3,
-    per_device_eval_batch_size=3,
+    output_dir="/mnt/hzx/Text-to-Cadquery/checkpoints_qwen3b",
+    per_device_train_batch_size=6,
+    per_device_eval_batch_size=6,
     gradient_accumulation_steps=2, # 有效批次大小: 6 × 2 = 12 （考虑梯度累积）
     num_train_epochs=3,
     learning_rate=5e-5,
